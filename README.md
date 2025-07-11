@@ -1,34 +1,36 @@
-# Running notes on deltabreedquery
-### Tyr Wiesner-Hanks
-### 2025-07-10
+# deltabreedquery
+
+
+This is a small R package to pull data from Breeding Insight's [DeltaBreed](https://sandbox.breedinginsight.net/) platform into R via [BrAPI](https://brapi.org/) calls. It offers some basic functions to pull four types of data into a properly formatted data frame:
+
+- Germplasm
+- Traits (Ontologies)
+- Experiments
+- Observations
 
 ### NAMING
-Not sure what makes the most sense, but deltabreedquery is a fine placeholder for now. If this ends up being useful to other people besides me, could name it deltabreed_r or just deltabreed or something, whatever.
+`deltabreedquery` was just a placeholder name, to be honest. If this ends up being useful to other people besides me we could name it `deltabreed_r` or just `deltabreed` or something, whatever.
 
 ### PRINCIPLES
 
-1. The output should match the naming and formatting of data as it appears on DeltaBreed whenever possible.
-2. All human-readable information associated with a given data type should be included by default and all non-human readable info should be excluded by default.
-3. No spaces or special characters in column headers - use CamelCase instead
+I used a few basic design principles in writing functions:
 
-### OVERALL WORKFLOW
-
+1. Fetched data should be returned as a tidy data frame that matches the naming/formatting used within DeltaBreed or whenever possible.
+2. All human-readable information associated with a given data type should be included by default, and all non-human readable info should be excluded by default.
+3. No spaces or special characters in column headers - use CamelCase instead.
 
 ### LOGGING IN
 
-Supplying the url/access token isn't technically logging in, but it seems reasonable to just use this language. Users are used to 
+To "log in", you need to get a valid Access Token from within DeltaBreed and supply it once, after which it's stored in the global env. I know this isn't logging in *per se*, but it seems better to use this language for simplicity's sake. Since access tokens expire after 24 hours, it's vaguely analogous to logging in.
 
-Do you have a URL specified?
-- If so
-
-Response code could use some specific messaging to help people with common mistakes they might be making
+Response code could use some specific messaging to help people with common mistakes they might be making:
 - 200: it's good
 - 404 or 500: check that the URL is correct
 - 401: check that the token matches the URL, try regenerating a token
 
 ### QUERYING
 
-Which endpoints would you want to query?
+There are several 
 - Ontology
 - Germplasm
 - Experiments (trials, studies, etc)
@@ -44,39 +46,32 @@ Separating these out into two function types seems useful:
 1. get_xyz() to just pull all the data for a given data type
 2. search_xyz() to pass search terms as lists
 
-You could allow for people to pass commands into get, but I'm not sure if that's much faster tbh
+You could allow for people to pass specific search terms into a GET call, but I'm not sure if that's much faster than search tbh.
 
-Every get/search should have a checkpoint for 404/401 error and supply a helpful error message if possible
-
-
+Every get/search should have a checkpoint for 404/401 error and supply a helpful error message if possible.
 
 ### PAGE SIZE
 
-From some basic testing, I haven't seen any noticeable time difference between a request with pageSize=500 and one with pageSize=50. 
+From some rudimentary testing, I haven't seen any noticeable time difference between a request with `pageSize=500` and one with `pageSize=50`. The overall time for a request scales inversely with the page size, since the larger the pageSize, the more individual calls you have to make.
 
-The higher the page size, the fewer calls you have to send. Thus, the overall time for a request scales inversely with the page size. 
+I assume you could run into timeout issues or something if you set the page size too high. This is probably worth testing or asking the Breeding Insight dev team.
 
-I assume you could run into timeout issues or something if you set the pageSize too high. This is worth testing though.
-
-For now, I'm using a default pageSize of 1000. It's a nice round number.
+For now, I'm using the default `pageSize` of 1000. It's a nice round number.
 
 
 ### TRAITS
 
-The most common use case is probably to pull all traits, since most people have a manageable number of traits (10s, rarely >100) in their program. 
+The nomenclature for traits gets a bit confusing. The frontend calls it Ontology, but in terms of BrAPI endpoints, the core data is stored on the `/variables` endpoint, not `/ontology` or `/traits`. For simplicity, I've just called it "Traits" throughout.
 
-Would you ever need to search it? Probably not often, but it makes sense to implement a Search functionality all the same.
+The most common use case is probably to just pull all traits, since most people have a manageable number of traits (10s, rarely >100) in their program. It seems rarer that you'd want to search traits for a specific reason.
 
-The nomenclature gets a bit confusing. The frontend calls it Ontology, but in terms of BrAPI-compliant endpoints, the core data is stored on the /variables endpoint, not /ontology or /traits. For simplicity, I'm calling it "traits"
+The Ontology table in DeltaBreed captures most of the core info, but I've also added in a few things (min, max, category levels) from the "Show details" pane as well.
 
-I couldn't figure out where the full text descriptions of each trait were stored. Maybe this is in a non-BrAPI endpoint? Either way, I'm skipping this for now.
-
-
-Match the appearance of the Ontology table in DeltaBreed, but add in the stuff from the "Show details" pane as well.
-
+*Note:* I couldn't figure out where the full text descriptions of each trait were stored. Maybe this is in a non-BrAPI endpoint? Either way, I'm skipping this for now.
 
 
 ### GERMPLASM
+
 Nothing super fancy here. Just match the appearance of the table exactly.
 
 How do you pull pedigrees? I think that is a different task altogether.
@@ -86,9 +81,10 @@ How do you pull pedigrees? I think that is a different task altogether.
 
 Both BrAPI and DeltaBreed use two levels of experimental data, one larger one and one smaller one:
 
-TYPE		BRAPI		DELTABREED
-Large		Trials		Experiments
-Small		Studies	Environments
+| TYPE  | BRAPI      | DELTABREED |
+| ----  | ----       | ---- |
+|Large  | Trials		| Experiments |
+|Small	| Studies	  | Environments |
 
 BrAPI treats the small entity (Study) as the core one while the larger (Trial) is more just a flexible grouping level. DeltaBreed does the opposite - the larger entity (Experiment) is the core unit, while the smaller one (Environment) is just a subset of this.
 
