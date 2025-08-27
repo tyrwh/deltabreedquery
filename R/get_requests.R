@@ -2,19 +2,23 @@ library(httr2)
 
 #' Build and execute generic GET request.
 #'
-#' @description Makes authenticated GET requests to a BrAPI endpoint and handles
+#' Makes authenticated GET requests to a BrAPI endpoint and handles
 #' pagination automatically. Returns parsed JSON data from all pages.
-#' @param url Character string. The API endpoint URL to request data from.
-#' @param token Character string. The authentication bearer token.
-#' @param page_size Integer. Number of records to request per page. Default is 500.
+#'
+#' @param url The DeltaBreed BrAPI URL (including /brapi/v2) to query.
+#' @param endpoint The specific endpoint to query, e.g. germplasm or programinfo
+#' @param token A valid Access Token for that endpoint.
+#' @param page_size Number of records to request per page. Default is 1000.
 #' @return A list of parsed JSON responses from all pages.
 #' @details This function handles pagination automatically by making additional
 #' requests if the total number of records exceeds the page size. It includes
 #' custom error handling for common HTTP status codes (401, 404, 405) with
 #' helpful error messages for troubleshooting authentication and endpoint issues.
-get_url_to_json <- function(base_url, endpoint, token, page_size = 1000, verbose = TRUE){
+
+build_get_request <- function(url, endpoint, token, page_size = 1000){
   url <- build_brapi_url(base_url, endpoint)
   # build an empty request
+
   req <- request(url) |>
     req_url_query(pageSize = page_size) |>
     req_auth_bearer_token(token) |>
@@ -25,14 +29,32 @@ get_url_to_json <- function(base_url, endpoint, token, page_size = 1000, verbose
              "\nAccess Token rejected by BrAPI endpoint. ",
              " Please double-check that your BrAPI URL is correct",
              " and try regenerating the Access Token.")
-      } else if (resp_status(resp) %in% c(404, 404, 405)) {
+      } else if (resp_status(resp) %in% c(404, 405)) {
         stop("Status code: ", resp_status(resp),
              "\nSpecified BrAPI endpoint not found." ,
              " Please double-check that your BrAPI URL is correct.",
              " If this issue persists, please contact the package maintainers.")
-      } 
-      resp_status(resp) != 200})
+      }
+      resp_status(resp) != 200
+      })
+  req
+}
 
+#' Build and execute generic GET request.
+#'
+#' Makes authenticated GET requests to a BrAPI endpoint and handles
+#' pagination automatically. Returns parsed JSON data from all pages.
+#'
+#' @param url The DeltaBreed BrAPI URL (including /brapi/v2) to query.
+#' @param endpoint The specific endpoint to query, e.g. germplasm or programinfo
+#' @param token A valid Access Token for that endpoint.
+#' @param page_size Number of records to request per page. Default is 1000.
+#' @return A list of parsed JSON responses from all pages.
+#' @details This function handles pagination automatically by making additional
+#' requests if the total number of records exceeds the page size. It includes
+#' custom error handling for common HTTP status codes (401, 404, 405) with
+#' helpful error messages for troubleshooting authentication and endpoint issues.
+perform_get_request <-
   # perform the first request and validate it
   response <- req_perform(req)
   json <- response |>
