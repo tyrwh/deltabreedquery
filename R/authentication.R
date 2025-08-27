@@ -21,8 +21,9 @@ login_deltabreed <- function(base_url = NULL, access_token = NULL) {
   }
   # Prompt for Base URL if not supplied
   if (is.null(base_url)) {
-    cat("Please enter the BrAPI Base URL. This can be found on the BrAPI tab")
-    cat(" of DeltaBreed, under the 'BrAPI Information' pane at left.\n")
+    cat("Please enter the BrAPI Base URL.\n",
+        "This can be found on the BrAPI tab of DeltaBreed,",
+        "under the 'BrAPI Information' pane at left.\n")
     base_url <- readline(prompt = "BrAPI Base URL: ")
   }
   # Validate URL
@@ -130,7 +131,8 @@ auth_exists <- function() {
 check_auth <- function() {
   if (!auth_exists()){
     cat("✗ You do not currently have any DeltaBreed authentication credentials",
-        "stored. Please run login_deltabreed() to authenticate.\n")
+        "stored.\n",
+        "Please run login_deltabreed() to authenticate.\n")
   } else {
     cat("✓ You have DeltaBreed authentication credentials stored.\n")
     env <- get("deltabreedr_global", envir = .GlobalEnv)
@@ -143,31 +145,30 @@ check_auth <- function() {
       if (remaining > 0) {
         hours <- floor(remaining / 3600)
         minutes <- floor((remaining %% 3600) / 60)
-        cat(sprintf("Access token expires in %d hours %d minutes.\n", hours, minutes))
+        cat(sprintf("  Access token expires in %d hours %d minutes.\n", hours, minutes))
       } else {
-        cat("Access Token has expired.",
-            "Please run login_deltabreed() to re-authenticate.\n" )
+        cat("✗ Access Token has expired.\n",
+            "  Please run login_deltabreed() to re-authenticate.\n" )
       }
     }
 
     # Test authentication by making a call to endpoint
-    cat("\nTesting authentication...\n")
     test_resp <- request(env$full_url) |>
       req_url_path_append('programs') |>
-      req_auth_bearer_token(access_token) |>
+      req_auth_bearer_token(env$access_token) |>
       req_perform()
 
     if (resp_status(test_resp) == 200) {
-      cat("URL and Access Token validated!\n")
+      cat("\n✓ URL and Access Token successfully validated!\n")
       test_json <- test_resp |>
         resp_body_json(simplifyVector = TRUE,
                        flatten = TRUE)
-      cat("Program name: ",
+      cat("  Program name: ",
           test_json$result$data$programName, "\n")
 
     } else {
-      cat("The test call to the BrAPI server has failed.",
-          "Please run login_deltabreed() to re-authenticate.\n" )
+      cat("\n✗ The test call to the BrAPI server has failed.\n",
+          "  Please run login_deltabreed() to re-authenticate.\n" )
     }
   }
   invisible(TRUE)

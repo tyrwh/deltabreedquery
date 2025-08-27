@@ -11,16 +11,17 @@ library(dplyr)
 #' }
 
 get_traits <- function(include_archived = FALSE) {
-  # Check if auth fields have been set
   if (!auth_exists()) {
     stop("No authentication credentials found. ",
          "Please run `login_deltabreed()` to authenticate first.")
   }
-  # Get global environment
   env <- get("deltabreedr_global", envir = .GlobalEnv)
 
-  # pull trial and study data
-  json_traits <- get_url_to_json(env$brapi_url, "variables", env$access_token, verbose = FALSE)
+  # Note - BrAPI nomenclature around traits is a bit confusing
+  # There are endpoints for Ontology, ObservationVariable, AND Trait
+  # not to mention the Method and Scale endpoints
+  json_traits <- execute_get_request(env$full_url, env$access_token,
+                                     "variables", verbose = FALSE)
   dfs_traits <- lapply(json_traits, clean_json_traits)
   df <- bind_rows(dfs_traits)
   cat("Number of traits found: \t", nrow(df), "\n")

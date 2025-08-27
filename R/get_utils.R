@@ -1,25 +1,24 @@
 library(httr2)
 
-#' Build and execute generic GET request.
+#' Build a generic BrAPI GET request
 #'
-#' Makes authenticated GET requests to a BrAPI endpoint and handles
-#' pagination automatically. Returns parsed JSON data from all pages.
+#' Builds a GET requests to a specific BrAPI endpoint and adds custom error
+#'   messaging for more helpful errors later on.
 #'
 #' @param url The DeltaBreed BrAPI URL (including /brapi/v2) to query.
+#' @param token A valid Access Token for the instance.
 #' @param endpoint The specific endpoint to query, e.g. germplasm or programinfo
-#' @param token A valid Access Token for that endpoint.
 #' @param page_size Number of records to request per page. Default is 1000.
-#' @return A list of parsed JSON responses from all pages.
+#' @return A httr2 request object.
 #' @details This function handles pagination automatically by making additional
 #' requests if the total number of records exceeds the page size. It includes
 #' custom error handling for common HTTP status codes (401, 404, 405) with
 #' helpful error messages for troubleshooting authentication and endpoint issues.
-
-build_get_request <- function(url, endpoint, token, page_size = 1000){
-  url <- build_brapi_url(base_url, endpoint)
-  # build an empty request
-
+#'
+#' @noRd
+build_get_request <- function(url, token, endpoint, page_size = 1000){
   req <- request(url) |>
+    req_url_path_append(endpoint) |>
     req_url_query(pageSize = page_size) |>
     req_auth_bearer_token(token) |>
     req_error(is_error = function(resp) {
@@ -36,49 +35,59 @@ build_get_request <- function(url, endpoint, token, page_size = 1000){
              " If this issue persists, please contact the package maintainers.")
       }
       resp_status(resp) != 200
-      })
+    })
   req
 }
 
-#' Build and execute generic GET request.
+#' Execute a generic BrAPI GET request
 #'
-#' Makes authenticated GET requests to a BrAPI endpoint and handles
+#' Makes authenticated GET request to a BrAPI endpoint and handles result
 #' pagination automatically. Returns parsed JSON data from all pages.
 #'
 #' @param url The DeltaBreed BrAPI URL (including /brapi/v2) to query.
+#' @param token A valid Access Token for the instance.
 #' @param endpoint The specific endpoint to query, e.g. germplasm or programinfo
-#' @param token A valid Access Token for that endpoint.
 #' @param page_size Number of records to request per page. Default is 1000.
+
 #' @return A list of parsed JSON responses from all pages.
 #' @details This function handles pagination automatically by making additional
 #' requests if the total number of records exceeds the page size. It includes
 #' custom error handling for common HTTP status codes (401, 404, 405) with
 #' helpful error messages for troubleshooting authentication and endpoint issues.
-perform_get_request <-
-  # perform the first request and validate it
+#'
+#' @noRd
+execute_get_request <- function(url, token, endpoint,
+                                page_size = 1000, verbose = TRUE){
+  req <- build_get_request(url, token, endpoint, page_size)
   response <- req_perform(req)
   json <- response |>
     resp_body_json(simplifyVector = TRUE,
                    flatten = TRUE)
-  n_records <- json$metadata$pagination$totalCount
 
-  # Check response status
+  # NOTE - not all DeltaBreed endpoints have pagination enabled
+  # e.g. on /brapi/v2/observationunits, adjusting pageSize does nothing
+  # To handle this, we use the pagination data from the response, not the request
+  n_records <- json$metadata$pagination$totalCount
+  page_size_response <- json$metadata$pagination$pageSize
+  n_pages_response <- json$metadata$pagination$totalPages
+
   if (n_records == 0) {
     stop("API call was successful but 0 records were found.")
   }
-  # iterate through pages if necessary
-  # a little clunky here - might be a better way to iterate through n+1 remaining pages
+  # iterate through pages if necessary - a little clunky here
+  # there might be a better way to iterate through n+1 remaining pages
   if (verbose) cat("Number of records found: ", n_records, "\n")
   responses <- list(response)
-  if (n_records > page_size) {
-    n_pages <- ceiling(n_records / page_size)
+  # req_perform_iterative should take up where we left off
+  # it doesn't know when to stop, though - supply this based on known page count
+  if (n_pages_response > 1) {
     further_responses <- req_perform_iterative(req,
-                                       iterate_with_offset("page"),
-                                       max_reqs = n_pages-1)
+                                               iterate_with_offset("page"),
+                                               max_reqs = n_pages_response-1)
     responses <- c(responses, further_responses)
   }
   json <- lapply(responses, function(x) resp_body_json(x,
-                                                     simplifyVector = TRUE,
-                                                     flatten = TRUE))
+                                                       simplifyVector = TRUE,
+                                                       flatten = TRUE))
   json
 }

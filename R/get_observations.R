@@ -10,33 +10,37 @@ library(dplyr)
 #' get_observations()
 #' }
 get_observations <- function() {
-  # Check if auth fields have been set
   if (!auth_exists()) {
     stop("No authentication credentials found. ",
          "Please run `login_deltabreed()` to authenticate first.")
   }
-  # Get global environment
   env <- get("deltabreedr_global", envir = .GlobalEnv)
 
-  # pull trial and study data
-  json_obs <- get_url_to_json(env$brapi_url, "observations", env$access_token, verbose = FALSE)
-  json_obsunits <- get_url_to_json(env$brapi_url, "observationunits", env$access_token, verbose = FALSE)
+  # pull the observation units (field/plot layout) and the values (observations)
+  cat('Requesting observation units...\n')
+  json_obsunits <- execute_get_request(env$full_url, env$access_token,
+                                       "observationunits", verbose = FALSE)
+  cat('Requesting phenotype values...\n')
+  json_obs <- execute_get_request(env$full_url, env$access_token,
+                                  "observations", verbose = FALSE)
 
-  dfs_trials <- lapply(json_trials, clean_json_trials)
-  dfs_studies <- lapply(json_studies, clean_json_studies)
-  df_trials <- bind_rows(dfs_trials)
-  df_studies <- bind_rows(dfs_studies)
-  # merge - this will be our return function for now
-  df_obs <- merge(df_trials, df_studies,
-                        by = "trialDbId", all.x = TRUE) |>
-                      select(ExptName, ExptType, ObservationLevel,
-                      EnvName, Location, Active,CreatedBy) |>
-                      arrange(ExptName, EnvName, Location)
+  # select and arrange the obs unit df to simplify col selection after merging
+  df_obsunits <- bind_rows(lapply(json_obsunits, clean_json_obsunits)) |>
+    select(ExptName, EnvName, Location,
+           ExpUnitID, Row, Column, GermplasmName, GID, TestOrCheck,
+           observationUnitDbId) |>
+    arrange(ExptName, EnvName, ExpUnitID)
 
-  cat("Number of observations found:  ", nrow(df_trials), "\n")
-  cat("Number of environments found: ", nrow(df_studies), "\n")
+  df_obs <- bind_rows(lapply(json_obs, clean_json_obs))
 
-  df_obs
+  # merge together and summarize
+  left_join(df_obsunits, df_obs,
+                  by = "observationUnitDbId") |>
+    select(!observationUnitDbId)
+
+  #cat("Number of observations found:  ", nrow(df_obsunits), "\n")
+  #cat("Number of environments found: ", nrow(df_obs), "\n")
+
 }
 
 clean_json_obsunits <- function(json) {
@@ -44,26 +48,45 @@ clean_json_obsunits <- function(json) {
   if (length(data) == 0){
     return(data.frame())
   }
-  data |>
-    rename(GermplasmName = germplasmName,
-      Env = studyName,
-      Expt = trialName,
-      EnvLocation = locationName,
-      ExpUnitID = observationUnitName,
-      TestOrCheck = ) |>
-      select(Env, Expt,
-            EnvLocation, CreatedBy, trialDbId)
+  # block and rep are within a column which does not get fully flattened
+  # verify that this column exists, then scrape the values
+  if ('observationUnitPosition.observationLevelRelationships' %in% colnames(data)){
+    data$Rep = sapply(data$observationUnitPosition.observationLevelRelationships,
+                      function(x) x |>
+                        filter(levelName == 'rep') |>
+                        pull(levelCode))
+    data$Block = sapply(data$observationUnitPosition.observationLevelRelationships,
+                        function(x) x |>
+                          filter(levelName == 'block') |>
+                          pull(levelCode))
   }
+  data |>
+    rename(ExptName = trialName,
+           EnvName = studyName,
+           Location = locationName,
+           ExpUnitID = observationUnitName,
+           Row = observationUnitPosition.positionCoordinateX,
+           Column = observationUnitPosition.positionCoordinateY,
+           GermplasmName = germplasmName,
+           GID = additionalInfo.gid,
+           TestOrCheck = observationUnitPosition.entryType)
+}
 
-clean_json_studies <- function(json) {
+clean_json_obs <- function(json) {
   data = json$result$data
   if (length(data) == 0){
     return(data.frame())
   }
-  data |>
-    rename(EnvName = studyName,
-           Location = locationName,
-           Active = active) |>
-    select(EnvName, Location, Active,
-           studyDbId, trialDbId)
+  # there is extra information in the Observation response
+  # but it is all redundant with data from ObsUnits
+  # validating this is fairly costly - just pull the values
+  data |> select(observationUnitDbId,
+                 observationVariableName,
+                 value) |>
+    arrange(observationVariableName) |>
+    tidyr::pivot_wider(names_from = observationVariableName,
+                       values_from = value)
+  # side note - Observations response contains year data
+  # It's unwise to use this, since some Envs have no observations
+  # better to pull it from Seasons
 }
