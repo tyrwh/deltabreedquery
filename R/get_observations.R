@@ -60,16 +60,7 @@ clean_json_obsunits <- function(json) {
                           filter(levelName == 'block') |>
                           pull(levelCode))
   }
-  data |>
-    rename(ExptName = trialName,
-           EnvName = studyName,
-           Location = locationName,
-           ExpUnitID = observationUnitName,
-           Row = observationUnitPosition.positionCoordinateX,
-           Column = observationUnitPosition.positionCoordinateY,
-           GermplasmName = germplasmName,
-           GID = additionalInfo.gid,
-           TestOrCheck = observationUnitPosition.entryType)
+  rename_brapi_columns(data, 'observationunits')
 }
 
 clean_json_obs <- function(json) {
@@ -79,7 +70,8 @@ clean_json_obs <- function(json) {
   }
   # there is extra information in the Observation response
   # but it is all redundant with data from ObsUnits
-  # validating this is fairly costly - just pull the values
+  # validating this is fairly costly from a time perspective
+  # just pull the values and dbids as needed
   data |> select(observationUnitDbId,
                  observationVariableName,
                  value) |>

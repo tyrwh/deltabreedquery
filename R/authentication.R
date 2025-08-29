@@ -1,13 +1,19 @@
 #' Log in to a DeltaBreed instance
 #'
-#' This function "logs in" to a BrAPI instance using the BrAPI Base
-#' URL and an Access Token, which are then stored for future calls.
-#' Both of these can be given as arguments or supplied during the function prompts.
+#' This function "logs in" to a DeltaBreed instance using the BrAPI Base
+#'   URL and an Access Token, which are then stored. Both the URL and the token
+#'   can be given as arguments or supplied to function prompts. The function
+#'   performs some basic checks, including verifying that the user has internet
+#'   access and making some test calls to the BrAPI server.
 #'
-#' It performs some basic checks, including verifying that the user has internet
-#' access and making some test calls to the BrAPI server.
+#'   Access tokens are valid for 24 hours after generation. To check your
+#'   authorization credentials at any time, use the
+#'   check_auth() function.
 #'
 #' @return No return value, called for side effects (storing credentials)
+#' @param base_url The BrAPI Base URL, found on the BrAPI tab of DeltaBreed
+#'   in the BrAPI Information pane.
+#' @param access_token The Access Token for the.
 #' @export
 #' @examples \dontrun{
 #' login_deltabreed()
@@ -85,7 +91,7 @@ login_deltabreed <- function(base_url = NULL, access_token = NULL) {
 
 #' Clear DeltaBreed authentication credentials
 #'
-#' @description Removes stored credentials from the global environment.
+#' @description Removes stored credentials (URL and ) from the global environment.
 #'
 #' @return No return value, called for side effects (clearing credentials)
 #' @export
