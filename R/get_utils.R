@@ -80,7 +80,7 @@ execute_get_request <- function(url, token, endpoint,
   # it doesn't know when to stop, though - supply this based on known page count
   if (n_pages_response > 1) {
     further_responses <- httr2::req_perform_iterative(req,
-                                               iterate_with_offset("page"),
+                                               httr2::iterate_with_offset("page"),
                                                max_reqs = n_pages_response-1)
     responses <- c(responses, further_responses)
   }
