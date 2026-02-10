@@ -51,12 +51,12 @@ clean_json_obsunits <- function(json) {
   if ('observationUnitPosition.observationLevelRelationships' %in% colnames(data)){
     data$Rep = sapply(data$observationUnitPosition.observationLevelRelationships,
                       function(x) x |>
-                        filter(levelName == 'rep') |>
-                        pull(levelCode))
+                        dplyr::filter(levelName == 'rep') |>
+                        dplyr::pull(levelCode))
     data$Block = sapply(data$observationUnitPosition.observationLevelRelationships,
                         function(x) x |>
-                          filter(levelName == 'block') |>
-                          pull(levelCode))
+                          dplyr::filter(levelName == 'block') |>
+                          dplyr::pull(levelCode))
   }
   rename_brapi_columns(data, 'observationunits')
 }
