@@ -22,7 +22,6 @@ get_germplasm <- function() {
   json <- execute_get_request(env$full_url, env$access_token, "germplasm")
   dfs <- lapply(json, clean_json_germplasm)
   df <- bind_rows(dfs)
-  cat("Number of records found: ", nrow(df), "\n")
   df
 }
 
