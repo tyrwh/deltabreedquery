@@ -33,8 +33,8 @@ get_experiments <- function(summarize = TRUE) {
 
   # merge entities
   df_studies <- dplyr::left_join(df_studies, df_seasons,
-                                 by = join_by(seasons == seasonDbId)) |>
-    select(!seasons)
+                                 by = dplyr::join_by(seasons == seasonDbId)) |>
+    dplyr::select(!seasons)
   df_expts <- dplyr::full_join(df_trials, df_studies,
                                by = "trialDbId") |>
     dplyr::select(ExptName, ExptType, EnvName, Location, Year,
