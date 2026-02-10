@@ -1,6 +1,3 @@
-library(httr2)
-library(dplyr)
-
 #' Get germplasm data
 #'
 #' @description Retrieves all germplasm data from the current DeltaBreed instance.
@@ -21,7 +18,7 @@ get_germplasm <- function() {
   # send GET request and clean JSON responses
   json <- execute_get_request(env$full_url, env$access_token, "germplasm")
   dfs <- lapply(json, clean_json_germplasm)
-  df <- bind_rows(dfs)
+  df <- dplyr::bind_rows(dfs)
   df
 }
 
@@ -33,9 +30,9 @@ clean_json_germplasm <- function(json) {
     return(data.frame())
   }
   rename_brapi_columns(data, 'germplasm') |>
-    select(GID, GermplasmName, BreedingMethod,
+    dplyr::select(GID, GermplasmName, BreedingMethod,
            Source, Pedigree,
            CreatedDate, CreatedBy) |>
-    arrange(as.integer(GID))
+    dplyr::arrange(as.integer(GID))
 }
 

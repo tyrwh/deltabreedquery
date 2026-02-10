@@ -1,5 +1,3 @@
-library(httr2)
-library(dplyr)
 #' Get Observation data
 #'
 #' @description Retrieves observation data from a DeltaBreed program via BrAPI.
@@ -25,18 +23,18 @@ get_observations <- function() {
                                   "observations", verbose = FALSE)
 
   # select and arrange the obs unit df to simplify col selection after merging
-  df_obsunits <- bind_rows(lapply(json_obsunits, clean_json_obsunits)) |>
-    select(ExptName, EnvName, Location,
+  df_obsunits <- dplyr::bind_rows(lapply(json_obsunits, clean_json_obsunits)) |>
+    dplyr::select(ExptName, EnvName, Location,
            ExpUnitID, Row, Column, GermplasmName, GID, TestOrCheck,
            observationUnitDbId) |>
-    arrange(ExptName, EnvName, ExpUnitID)
+    dplyr::arrange(ExptName, EnvName, ExpUnitID)
 
-  df_obs <- bind_rows(lapply(json_obs, clean_json_obs))
+  df_obs <- dplyr::bind_rows(lapply(json_obs, clean_json_obs))
 
   # merge together and summarize
-  left_join(df_obsunits, df_obs,
+  dplyr::left_join(df_obsunits, df_obs,
                   by = "observationUnitDbId") |>
-    select(!observationUnitDbId)
+    dplyr::select(!observationUnitDbId)
 
   #cat("Number of observations found:  ", nrow(df_obsunits), "\n")
   #cat("Number of environments found: ", nrow(df_obs), "\n")
@@ -72,10 +70,10 @@ clean_json_obs <- function(json) {
   # but it is all redundant with data from ObsUnits
   # validating this is fairly costly from a time perspective
   # just pull the values and dbids as needed
-  data |> select(observationUnitDbId,
+  data |> dplyr::select(observationUnitDbId,
                  observationVariableName,
                  value) |>
-    arrange(observationVariableName) |>
+    dplyr::arrange(observationVariableName) |>
     tidyr::pivot_wider(names_from = observationVariableName,
                        values_from = value)
   # side note - Observations response contains year data

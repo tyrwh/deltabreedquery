@@ -1,5 +1,3 @@
-library(httr2)
-
 #' Build a generic BrAPI GET request
 #'
 #' Builds a GET requests to a specific BrAPI endpoint and adds custom error
@@ -17,24 +15,24 @@ library(httr2)
 #'
 #' @noRd
 build_get_request <- function(url, token, endpoint, page_size = 1000){
-  req <- request(url) |>
-    req_url_path_append(endpoint) |>
-    req_url_query(pageSize = page_size) |>
-    req_auth_bearer_token(token) |>
-    req_error(is_error = function(resp) {
+  req <- httr2::request(url) |>
+    httr2::req_url_path_append(endpoint) |>
+    httr2::req_url_query(pageSize = page_size) |>
+    httr2::req_auth_bearer_token(token) |>
+    httr2::req_error(is_error = function(resp) {
       # Custom error messages to help people troubleshoot
-      if (resp_status(resp) == 401) {
-        stop("Status code: ", resp_status(resp),
+      if (httr2::resp_status(resp) == 401) {
+        stop("Status code: ", httr2::resp_status(resp),
              "\nAccess Token rejected by BrAPI endpoint. ",
              " Please double-check that your BrAPI URL is correct",
              " and try regenerating the Access Token.")
-      } else if (resp_status(resp) %in% c(404, 405)) {
-        stop("Status code: ", resp_status(resp),
+      } else if (httr2::resp_status(resp) %in% c(404, 405)) {
+        stop("Status code: ", httr2::resp_status(resp),
              "\nSpecified BrAPI endpoint not found." ,
              " Please double-check that your BrAPI URL is correct.",
              " If this issue persists, please contact the package maintainers.")
       }
-      resp_status(resp) != 200
+      httr2::resp_status(resp) != 200
     })
   req
 }
@@ -59,9 +57,9 @@ build_get_request <- function(url, token, endpoint, page_size = 1000){
 execute_get_request <- function(url, token, endpoint,
                                 page_size = 1000, verbose = TRUE){
   req <- build_get_request(url, token, endpoint, page_size)
-  response <- req_perform(req)
+  response <- httr2::req_perform(req)
   json <- response |>
-    resp_body_json(simplifyVector = TRUE,
+    httr2::resp_body_json(simplifyVector = TRUE,
                    flatten = TRUE)
 
   # NOTE - not all DeltaBreed endpoints have pagination enabled
@@ -81,12 +79,12 @@ execute_get_request <- function(url, token, endpoint,
   # req_perform_iterative should take up where we left off
   # it doesn't know when to stop, though - supply this based on known page count
   if (n_pages_response > 1) {
-    further_responses <- req_perform_iterative(req,
+    further_responses <- httr2::req_perform_iterative(req,
                                                iterate_with_offset("page"),
                                                max_reqs = n_pages_response-1)
     responses <- c(responses, further_responses)
   }
-  json <- lapply(responses, function(x) resp_body_json(x,
+  json <- lapply(responses, function(x) httr2::resp_body_json(x,
                                                        simplifyVector = TRUE,
                                                        flatten = TRUE))
   json

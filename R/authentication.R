@@ -53,15 +53,15 @@ login_deltabreed <- function(base_url = NULL, access_token = NULL) {
 
   # Test authentication by making a test API call
   cat("\nTesting authentication...\n")
-  test_resp <- request(full_url) |>
-    req_url_path_append('programs') |>
-    req_auth_bearer_token(access_token) |>
-    req_perform()
+  test_resp <- httr2::request(full_url) |>
+    httr2::req_url_path_append('programs') |>
+    httr2::req_auth_bearer_token(access_token) |>
+    httr2::req_perform()
 
-  if (resp_status(test_resp) == 200) {
+  if (httr2::resp_status(test_resp) == 200) {
     cat("URL and Access Token validated!\n")
     test_json <- test_resp |>
-      resp_body_json(simplifyVector = TRUE,
+      httr2::resp_body_json(simplifyVector = TRUE,
                      flatten = TRUE)
     cat("Program name: ",
         test_json$result$data$programName, "\n")
@@ -75,16 +75,16 @@ login_deltabreed <- function(base_url = NULL, access_token = NULL) {
     deltabreedr_global$full_url <- full_url
     deltabreedr_global$access_token <- access_token
     deltabreedr_global$login_timestamp <- Sys.time()
-  } else if (resp_status(test_resp) == 401) {
+  } else if (httr2::resp_status(test_resp) == 401) {
     stop("401: Access Token not accepted. ",
          "Please double-check the BrAPI Base URL and ",
          "try generating a new Access Token.")
-  } else if (resp_status(test_resp) == 404) {
+  } else if (httr2::resp_status(test_resp) == 404) {
     stop("404: BrAPI endpoint not found. ",
          "Please double-check the BrAPI Base URL.")
   } else {
     stop("Unexpected error during authentication test. Status code: ",
-         resp_status(test_resp))
+         httr2::resp_status(test_resp))
   }
   invisible(TRUE)
 }
@@ -159,15 +159,15 @@ check_auth <- function() {
     }
 
     # Test authentication by making a call to endpoint
-    test_resp <- request(env$full_url) |>
-      req_url_path_append('programs') |>
-      req_auth_bearer_token(env$access_token) |>
-      req_perform()
+    test_resp <- httr2::request(env$full_url) |>
+      httr2::req_url_path_append('programs') |>
+      httr2::req_auth_bearer_token(env$access_token) |>
+      httr2::req_perform()
 
-    if (resp_status(test_resp) == 200) {
+    if (httr2::resp_status(test_resp) == 200) {
       cat("\n✓ URL and Access Token successfully validated!\n")
       test_json <- test_resp |>
-        resp_body_json(simplifyVector = TRUE,
+        httr2::resp_body_json(simplifyVector = TRUE,
                        flatten = TRUE)
       cat("  Program name: ",
           test_json$result$data$programName, "\n")
