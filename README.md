@@ -4,9 +4,9 @@
 This is a small R package to pull data from Breeding Insight's [DeltaBreed](https://sandbox.breedinginsight.net/) platform into R via [BrAPI](https://brapi.org/) calls. It offers some basic functions to pull four types of data into a properly formatted data frame:
 
 - Germplasm
-- Traits
 - Experiments/Environments
 - Observations
+- Traits (*still working on this one*)
 
 For each data type, there are two functions: one which sends a GET request to fetch all the data of the given type (e.g. `get_germplasm()`) and one which sends a POST request to search for specific terms (e.g. `search_observations(year = 2024)`).
 
@@ -14,16 +14,16 @@ For most purposes, fetching everything via `get_x()` will be the more useful met
 
 Searching is still useful for programs with a large amount of data on DeltaBreed obviously, or if you want to build a more minimal workflow (e.g. writing a field season summary that draws data from specific years).
 
-You can easily allow for people to pass specific search terms into a GET query, but I'm not sure if that's much faster than using a search query. [Search services in BrAPI](https://plant-breeding-api.readthedocs.io/en/latest/docs/best_practices/Search_Services.html) are pretty optimized as it is.
+You can easily allow for people to pass specific search terms into a GET query, but I'm not sure if that's much faster than using a search query. [Search services in BrAPI](https://plant-breeding-api.readthedocs.io/en/latest/docs/best_practices/Search_Services.html) are supposedly pretty optimized as it is.
 
 ### NAMING
-`deltabreedquery` was just a placeholder name, to be honest. If this ends up being useful to other people besides me we could name it `deltabreed_r` or just `deltabreed` or something, whatever.
+`deltabreedquery` was just a placeholder name, to be honest. If this ends up being useful to other people besides me we could name it `DeltaBreedR` or just `deltabreed` or something, whatever.
 
 ### PRINCIPLES
 
 I used a few basic design principles in writing this:
 
-1. Fetched data should be returned as a tidy data frame that resembles the data as it appears in DeltaBreed itself.
+1. Fetched data should be returned as a tidy data frame that closely resembles how the data appears in DeltaBreed itself.
 2. If a naming convention would cause problems in R (spaces, special characters), using unambiguous CamelCase names takes precedent over copying DeltaBreed conventions exactly.
 3. All human-readable information associated with a given data type should be included by default, and all non-human readable info should be excluded by default; no `DbId`s in the data frame.
 
@@ -35,10 +35,11 @@ To "log in", you need to get a valid Access Token from within DeltaBreed and sup
 
 ### QUERYING
 
-There are several 
+There are several endpoints that contain the relevant information we need:
 - Ontology
 - Germplasm
-- Experiments (trials, studies, etc)
+- Trials
+- Studies
 - ObservationUnits
 - Observations
 
@@ -87,7 +88,7 @@ What other info might you want to get, which might require a query to other endp
 - Num Traits
 - Num Observations
 
-I think this can all be pulled from ObsUnits and Observations?
+I think this can all be pulled from ObsUnits and Observations? TBD.
 
 ### OBSERVATIONS
 
