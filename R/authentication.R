@@ -3,16 +3,18 @@
 
 #' Log in to a DeltaBreed instance
 #'
-#' This function stores your authentication credentials for a target DeltaBreed
-#' instance. To log in, you will require the BrAPI Base URL and a valid
-#' authentication token, both of which can be found on the `BrAPI` tab of
-#' DeltaBreed. The URL and token can be given as arguments or supplied to
-#' function prompts. The function performs some basic checks, including
-#' verifying that the user has internet access and making some test calls to the
-#' BrAPI server.
+#' @description This function stores your authentication credentials for a
+#'   target DeltaBreed instance. To log in, you will require the BrAPI Base URL
+#'   and a valid authentication token, both of which can be found on the 'BrAPI'
+#'   tab of DeltaBreed.
 #'
-#' Access tokens are valid for 24 hours after generation. To check your
-#' authorization credentials at any time, use the check_auth() function.
+#'   The URL and token can be given as arguments or supplied to function
+#'   prompts. The function performs some basic checks, including verifying that
+#'   the user has internet access and making some test calls to the BrAPI
+#'   server.
+#'
+#' @details Access tokens are valid for 24 hours after generation. To check your
+#'   authorization credentials at any time, use the [check_auth()] function.
 #'
 #' @return No return value, called for side effects (storing credentials)
 #' @param base_url The BrAPI Base URL, found on the BrAPI tab of DeltaBreed in
@@ -115,7 +117,7 @@ login_deltabreed <- function(base_url = NULL, access_token = NULL, verbose = TRU
 #' @description Removes stored credentials (URL and access token) from the
 #' package environment. The access token will remain valid for as long as the
 #' DeltaBreed instance specifies, but in order to retrieve data the URL/token
-#' will need to be-entered with `login_deltabreed()`.
+#' will need to be-entered with [login_deltabreed()].
 #'
 #' @return No return value, called for side effects (clearing credentials)
 #' @export
@@ -129,14 +131,7 @@ logout_deltabreed <- function() {
   invisible(TRUE)
 }
 
-#' @title Check whether authentication credentials exist
-#'
-#' @description Checks if a BrAPI Base URL and access token exist in the global
-#'   environment. Note that it does not specify whether the credentials are
-#'   valid, merely that they exist.
-#'
-#' @return Logical value indicating if base_url and access_token exist in the
-#'   global env.
+# Helper function to check existence (but not validity) of url/token
 auth_exists <- function() {
   exists("full_url", envir = .dbc_env) &&
     exists("access_token", envir = .dbc_env)

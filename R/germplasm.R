@@ -1,10 +1,12 @@
-#' Retrieve germplasm data
+#' Retrieve germplasm records
 #'
-#' @param page_size Page size to use for the response. Larger page sizes may decrease total retrieval time.
+#' @description Retrieves all germplasm data from the current DeltaBreed
+#'   instance, reformatting it to match DeltaBreed layout.
 #'
-#' @description Retrieves all germplasm data from the current DeltaBreed instance.
-#' @return Data frame of germplasm/accession/entry information drawn from BrAPI `/germplasm` endpoint.
-#' Data is formatted
+#' @param page_size Page size to use for the response. Larger page sizes may
+#'   decrease total retrieval time.
+#'
+#' @return Data frame of germplasm/accession/entry information.
 #' @export
 #' @examples
 #' login_deltabreed("example", verbose = FALSE)
@@ -14,7 +16,7 @@
 get_germplasm <- function(page_size = 10000) {
   if (!auth_exists()) {
     stop("No authentication credentials found. ",
-         "Please run `login_deltabreed()` to authenticate first.")
+         "Please run login_deltabreed() to authenticate first.")
   }
   if (is_example_mode()) {
     df <- load_example_json("germplasm.json") |> json_list_to_df()
@@ -33,7 +35,11 @@ get_germplasm <- function(page_size = 10000) {
 
   mapping_germplasm <- define_mapping_germplasm()
   renamed <- brapi_to_db_names(df, mapping_germplasm) |>
-    dplyr::mutate("GID" = as.integer(.data$GID)) |>
+    dplyr::mutate("GID" = as.integer(.data$GID),
+                  "FemaleParentGID" = as.integer(.data$FemaleParentGID),
+                  "MaleParentGID" = as.integer(.data$MaleParentGID),
+                  "Pedigree" = dplyr::if_else(.data$Pedigree == "", NA, .data$Pedigree),
+                  "CreatedDate" = as.Date.character(.data$CreatedDate, format = "%d/%m/%Y")) |>
     dplyr::arrange(.data$GID)
   renamed
 }

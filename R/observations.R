@@ -1,9 +1,9 @@
 #' Retrieve all observation data
 #'
-#' Retrieves all observation data from a DeltaBreed instance via BrAPI call.
-#' This includes observation units with no observations. converting it into a
-#' data frame that mimics the appearance of the data tables on the Experiments &
-#' Observations tab of DeltaBreed.
+#' @description Retrieves all observation data from a DeltaBreed instance via
+#'   BrAPI call. This includes observation units with no observations.
+#'   converting it into a data frame that mimics the appearance of the data
+#'   tables on the Experiments & Observations tab of DeltaBreed.
 #'
 #' @param page_size Page size to use for the response. Larger page sizes may
 #'   decrease total retrieval time.
@@ -30,7 +30,7 @@ get_observations <- function(page_size = 10000,
                              verbose = TRUE) {
   if (!auth_exists()) {
     stop("No authentication credentials found.",
-         "Please run `login_deltabreed()` to authenticate first.")
+         "Please run login_deltabreed() to authenticate first.")
   }
   if (verbose) message("Requesting observation units...")
   if (is_example_mode()) {
@@ -117,22 +117,27 @@ get_observations <- function(page_size = 10000,
 
 #' Retrieve a filtered list of observation data
 #'
-#' This function retrieves a filtered list of observation data using one or more
-#' filters provided by the user, packaging the response into a data frame of the
-#' same format as get_observations().
+#' @description This function retrieves a foo filtered list of observation data
+#'   using one or more filter values provided by the user, packaging the
+#'   response into a data frame of the same format as [get_observations()].
 #'
-#' This function is best used by calling get_experiments() first, in order to
-#' see what experiments are actually present in the target DeltaBreed instance.
+#'   This function is best used by calling [get_experiments()] first, in order
+#'   to see what experiments are actually present in the target DeltaBreed
+#'   instance.
 #'
 #' @param year A year or vector of years.
 #' @param location A location name or vector of locations.
 #' @param exp_name An experiment name or vector of names.
 #' @param env_name An environment name or vector of names.
 #' @param exp_type An experiment type or vector of types.
-#' @param page_size Page size to use for the response. Larger page sizes may decrease total retrieval time.
-#' @param drop_empty_columns Whether to drop all empty columns (including metadata columns) from the returned data frame
-#' @param include_dbids Whether to include the DbIds of the observation units, mostly useful for debugging.
-#' @param verbose Whether to print short messages about the number of records found.
+#' @param page_size Page size to use for the response. Larger page sizes may
+#'   decrease total retrieval time.
+#' @param drop_empty_columns Whether to drop all empty columns (including
+#'   metadata columns) from the returned data frame
+#' @param include_dbids Whether to include the DbIds of the observation units,
+#'   mostly useful for debugging.
+#' @param verbose Whether to print short messages about the number of records
+#'   found.
 #'
 #' @returns A data frame of observations using the supplied filters.
 #' @export
@@ -170,7 +175,7 @@ filter_observations <- function(year = NA,
   }
   if (!auth_exists()) {
     stop("No authentication credentials found. ",
-         "Please run `login_deltabreed()` to authenticate first.")
+         "Please run login_deltabreed() to authenticate first.")
   }
   expts <- get_experiments(verbose = FALSE, include_dbids = TRUE)
   filt_expts <- expts |>

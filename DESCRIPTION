@@ -1,18 +1,18 @@
 Package: deltabreedquery
 Type: Package
 Title: Fast, Simple API Tools for Retrieving Data from 'DeltaBreed'
-Version: 1.0.0
+Version: 1.0.3
 Authors@R: c(
     person("Tyr", "Wiesner-Hanks",
     email = "twiesnerhanks@ufl.edu", role = c("aut","cre"),
     comment = c(ORCID = "0000-0002-3280-5749"))
     )
 Maintainer: Tyr Wiesner-Hanks <twiesnerhanks@ufl.edu>
-Description: Data retrieval functions to fetch data from the 'DeltaBreed' breeding
-  data management platform via the 'BrAPI' open-source breeding data API
-  (<https://brapi.org/specification>). 
-  Each of the four main data types stored in `DeltaBreed` (germplasm, trait variables,
-  experiments/environments, and observations) are handled by a `get_datatype()`
+Description: Simplified data retrieval from the 'DeltaBreed' breeding
+  data management platform (<https://sandbox.breedinginsight.net/>) via the
+  'BrAPI' open-source breeding data API (<https://brapi.org/specification>).
+  Each of the four main data types stored in 'DeltaBreed' (germplasm, trait variables,
+  experiments/environments, and observations) are handled by a get_datatype()
   function that constructs and executes the request, handles paginated responses,
   and parses the retrieved data. Responses are reformatted into a consistent,
   R-friendly data frame format that resembles how the data appears on the
@@ -32,4 +32,5 @@ Imports:
     tidyr,
     rlang,
     jsonlite
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.0
+Roxygen: list(markdown = TRUE)

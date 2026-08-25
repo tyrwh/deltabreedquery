@@ -1,12 +1,13 @@
 #' Retrieve observation variables (trait definitions) from a DeltaBreed instance.
 #'
-#' @param verbose Whether to print a short message about the number of traits found.
-#' @param include_archived Whether the output should include archived (non-active).
-#'
 #' @description Retrieves trait data from a DeltaBreed program via BrAPI,
 #' converting it into a data frame that mimics the appearance of the Ontology
 #' table in DeltaBreed itself.
-#' @return Data frame of trait definitions drawn from BrAPI `/variables`
+#'
+#' @param verbose Whether to print a short message about the number of traits found.
+#' @param include_archived Whether the output should include archived (non-active).
+
+#' @return Data frame of trait definitions drawn from BrAPI /variables
 #' endpoint.
 #' @export
 #' @examples
@@ -18,7 +19,7 @@ get_variables <- function(verbose = TRUE,
                           include_archived = FALSE) {
   if (!auth_exists()) {
     stop("No authentication credentials found. ",
-         "Please run `login_deltabreed()` to authenticate first.")
+         "Please run login_deltabreed() to authenticate first.")
   }
   # BrAPI nomenclature around trait endpoints is a bit confusing
   # lots of endpoints, but the one we need is mostly in /variables
